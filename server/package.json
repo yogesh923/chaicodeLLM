@@ -8,6 +8,8 @@
     "start": "node src/index.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1136.0",
+    "@aws-sdk/s3-request-presigner": "^3.1136.0",
     "@langchain/community": "^1.1.29",
     "@langchain/core": "^1.2.11",
     "@langchain/openai": "^1.5.13",
@@ -19,6 +21,7 @@
     "langchain": "^1.5.11",
     "openai": "^7.18.0",
     "pdf-parse": "^2.4.5",
+    "pg": "^8.23.0",
     "srt-parser-2": "^1.2.3"
   }
 }
