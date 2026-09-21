@@ -1,14 +1,16 @@
 export { buildQueryTexts, searchVectorByTexts } from "./vectorSearch.js";
 export { searchPostgresByTexts } from "./postgresSearch.js";
 export { searchS3ByTexts } from "./s3Search.js";
+export { reciprocalRankFusion, fuseRetrieval } from "./rrf.js";
 
 import { buildQueryTexts, searchVectorByTexts } from "./vectorSearch.js";
 import { searchPostgresByTexts } from "./postgresSearch.js";
 import { searchS3ByTexts } from "./s3Search.js";
+import { fuseRetrieval } from "./rrf.js";
 
-export async function searchAll(enhanced, { k = 5 } = {}) {
+export async function searchAll(enhanced, { k = 5, fusedLimit = 20 } = {}) {
   const texts = buildQueryTexts(enhanced);
-  const [vector, postgres, s3] = await Promise.allSettled([
+  const [vectorRes, postgresRes, s3Res] = await Promise.allSettled([
     searchVectorByTexts(texts, k),
     searchPostgresByTexts(texts),
     searchS3ByTexts(texts),
@@ -17,5 +19,12 @@ export async function searchAll(enhanced, { k = 5 } = {}) {
     r.status === "fulfilled"
       ? { ok: true, results: r.value }
       : { ok: false, results: [], error: r.reason?.message };
-  return { texts, vector: pick(vector), postgres: pick(postgres), s3: pick(s3) };
+  const vector = pick(vectorRes);
+  const postgres = pick(postgresRes);
+  const s3 = pick(s3Res);
+  const fused = fuseRetrieval(
+    { vector: vector.results, postgres: postgres.results, s3: s3.results },
+    { limit: fusedLimit }
+  );
+  return { texts, vector, postgres, s3, fused };
 }
